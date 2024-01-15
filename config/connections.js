@@ -1,7 +1,7 @@
-const Sequelize = require('sequelize');
+const mysql = require("mysql2");
 
 // Create a connection object
-const sequelize = new Sequelize(
+const db = mysql.createConnection(
   // Database name
   'employee_db',
   // User
@@ -16,4 +16,4 @@ const sequelize = new Sequelize(
   }
 );
 
-module.exports = sequelize;
+module.exports = db;
