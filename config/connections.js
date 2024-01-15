@@ -1,19 +1,18 @@
+
+
 const mysql = require("mysql2");
 
-// Create a connection object
-const db = mysql.createConnection(
-  // Database name
-  'employee_db',
-  // User
-  'root',
-  // Password
-  'Chris123',
-  {
-    // Database location
-    host: 'localhost',
-    dialect: 'mysql',
-    port: 3306
-  }
-);
+const connection = mysql.createConnection({
+  host: "localhost",
+  // Your username
+  user: "root",
+  // Your password
+  password: "Chris123",
+  database: "employee_db"
+});
 
-module.exports = db;
+connection.connect(function (err) {
+  if (err) throw err;
+});
+
+module.exports = connection;

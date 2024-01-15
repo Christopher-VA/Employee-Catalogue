@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
-const {findAllEmployees} = require('./db/index.js');
+const {findAllEmployees, findAllRoles, findAllDepartments} = require('./db/index.js');
 const db = require('./config/connections.js');
+const connection = require('./config/connections.js');
 
 function init() {
     inquirer
@@ -30,36 +31,27 @@ function init() {
                 case "add an employee":
                     addEmployee();
                     break;
+                case "quit":
+                    db.end();
+                    console.log("Database Closing!");
+                    break;
             }
         })
 }
 
 function departments() {
-    const query = `SELECT * FROM departments`;
-    db.query(query, (err, res) => {
-        if (err) throw err;
-        console.table(res);
-        init();
-    });
+    const query = findAllDepartments().then(data => console.log(data));
+    init();
 }
 
 function roles() {
-    const query = `SELECT * FROM roles`;
-    db.query(query, (err, res) => {
-        if (err) throw err;
-        console.table(res);
-        init();
-    });
+    const query = findAllRoles().then(data => console.log(data));
+    init();
 }
 
 function employees() {
-    // findAllEmployees().then(data => console.log(data));
-    const query = findAllEmployees();
-    db.query(query, (err, res) => {
-        if (err) throw err;
-        console.table(res);
-        init();
-    });
+    const query = findAllEmployees().then(data => console.log(data));
+    init();
 }
 
 function addDepartment() {
@@ -71,16 +63,20 @@ function addDepartment() {
         })
         .then((answer) => {
             console.log(answer.name)
-            const query = `INSERT INTO departments (department_name) VALUES ("${answer.name}")`;
+            const query = `INSERT INTO department (department_name) VALUES ("${answer.name}")`;
             db.query(query, (err, res) => {
                 if (err) throw err;
-                console.log(`New department ${answer.name} added!`);
+                console.log(`Added department ${answer.name} to the database!`);
                 init();
+                console.log(answer.name);
             });
         })
 }
 
 function addRole() {
+    const query = "SELECT * FROM department";
+    db.query(query, (err, res) => {
+        if (err) throw err;
         inquirer
             .prompt([{
                     type: "input",
@@ -105,7 +101,7 @@ function addRole() {
                 const department = res.find(
                     (department) => department.name === answers.department
                 );
-                const query = "INSERT INTO roles SET ?";
+                const query = "INSERT INTO role SET ?";
                 db.query(
                     query,
                     {
@@ -116,13 +112,25 @@ function addRole() {
                     (err, res) => {
                         if (err) throw err;
                         console.log(`New role ${answers.title} added!`);
-                        start();
+                        init();
                     }
                 );
             });
+    });
 };
 
 function addEmployee() {
+    db.query("SELECT id, title FROM role", (err, res) => {
+        if (err) {
+            console.err(err);
+            return;
+        }
+
+        const role = res.map(({ id, title }) => ({
+            name: title,
+            value: id,
+        }));
+
     inquirer
         .prompt([{
             type: "input",
@@ -138,31 +146,31 @@ function addEmployee() {
             type: "list",
             name: "idRole",
             message: "Select their role",
-            choices: roles,
-        },
-        {
-            type: "list",
-            name: "idManager",
-            message: "Select their manager",
-            choices: manager_id,
+            choices: role,
         }
         ])
         .then((answer) => {
-            const sql = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+            const sql = "INSERT INTO employee (first_name, last_name, role_id) VALUES (?, ?, ?)";
             const employee = [
                 answer.firstName,
                 answer.lastName,
                 answer.idRole,
-                answer.idManager,
             ];
             db.query(sql, employee, (err) => {
                 if (err) {
-                    console.table(res);
+                    console.err(err);
                     return;
                 }
+
+                console.log(`${answer.firstName}` + ` ` + `${answer.lastName} was added!` )
                 init()
             })
         })
+    });
 }
+
+process.on("quit", () => {
+    db.end();
+});
 
 init();
