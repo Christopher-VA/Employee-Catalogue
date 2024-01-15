@@ -1,5 +1,7 @@
 const connection = require("../config/connections");
 
+// sql commands for databases
+
 function findAllEmployees() {
   return connection.promise().query(
     "SELECT * FROM employee"

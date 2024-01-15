@@ -3,13 +3,14 @@ const {findAllEmployees, findAllRoles, findAllDepartments} = require('./db/index
 const db = require('./config/connections.js');
 const connection = require('./config/connections.js');
 
+// Makes the beginning question of what the user wants to do
 function init() {
     inquirer
         .prompt({
             type: "list",
             name: "command",
             message: "What would you like to do?",
-            choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "update an employee role", "quit"],
+            choices: ["view all departments", "view all roles", "view all employees", "add a department", "add a role", "add an employee", "quit"],
         })
         .then((answer) => {
             switch (answer.command) {
@@ -35,25 +36,30 @@ function init() {
                     db.end();
                     console.log("Database Closing!");
                     break;
+                    // closes database
             }
         })
 }
 
+// checks departments
 function departments() {
     const query = findAllDepartments().then(data => console.log(data));
     init();
 }
 
+// checks roles
 function roles() {
     const query = findAllRoles().then(data => console.log(data));
     init();
 }
 
+// checks employees
 function employees() {
     const query = findAllEmployees().then(data => console.log(data));
     init();
 }
 
+// adds departments
 function addDepartment() {
     inquirer
         .prompt({
@@ -73,6 +79,7 @@ function addDepartment() {
         })
 }
 
+// adds roles
 function addRole() {
     const query = "SELECT * FROM department";
     db.query(query, (err, res) => {
@@ -119,6 +126,7 @@ function addRole() {
     });
 };
 
+// adds employees
 function addEmployee() {
     db.query("SELECT id, title FROM role", (err, res) => {
         if (err) {
@@ -168,9 +176,5 @@ function addEmployee() {
         })
     });
 }
-
-process.on("quit", () => {
-    db.end();
-});
 
 init();
